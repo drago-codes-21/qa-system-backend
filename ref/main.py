@@ -1,27 +1,9 @@
-# !/usr/bin/env python
-# coding: utf-8
-
-# In[20]:
-
-
 import openai
-
-
-# In[21]:
-
 
 from flask import Flask,jsonify,request
 
-
-# In[22]:
-
-
 openai.api_key="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"
 model_engine = "text-davinci-003"
-
-
-# In[16]:
-
 
 import wikipedia
 from keybert import KeyBERT
@@ -37,19 +19,11 @@ import wikipediaapi
 import pywhatkit as pwt
 from newsapi.newsapi_client import NewsApiClient
 
-
-# In[23]:
-
-
 def DallE(question):
     return openai.Image.create(
     prompt=question,
         n=2,
         size="256x256")
-
-
-# In[24]:
-
 
 def read_article(text):        
   sentences =[]        
@@ -57,6 +31,7 @@ def read_article(text):
   for sentence in sentences:        
     sentence.replace("[^a-zA-Z0-9]"," ")     
   return sentences
+
 def sentence_similarity(sent1,sent2,stopwords=None):    
     if stopwords is None:        
         stopwords = []        
@@ -76,6 +51,7 @@ def sentence_similarity(sent1,sent2,stopwords=None):
             vector2[all_words.index(w)]+=1 
                
     return 1-cosine_distance(vector1,vector2)
+
 def build_similarity_matrix(sentences,stop_words):
   #create an empty similarity matrix
     similarity_matrix = np.zeros((len(sentences),len(sentences)))
@@ -84,6 +60,7 @@ def build_similarity_matrix(sentences,stop_words):
             if idx1!=idx2:
                 similarity_matrix[idx1][idx2] = sentence_similarity(sentences[idx1],sentences[idx2],stop_words)
     return similarity_matrix   
+
 def generate_summary(text,top_n):
     nltk.download('stopwords')    
     nltk.download('punkt')
@@ -105,10 +82,6 @@ def generate_summary(text,top_n):
   # Step6 : output the summarized version
     return " ".join(summarize_text),len(sentences)
 
-
-# In[15]:
-
-
 kw_model = KeyBERT()
 def chatGPT(prompt):   
     completion = openai.Completion.create(
@@ -121,11 +94,11 @@ def chatGPT(prompt):
     )
     response = completion.choices[0].text
     return response
+    
 def get_Answer(question):
     keywords=kw_model.extract_keywords(question, keyphrase_ngram_range=(1, 3), stop_words=None)
     full_res=chatGPT(keywords[0][0])
     res={"answer":generate_summary(full_res,5)}
-
     return res
     
     
@@ -155,7 +128,7 @@ def image():
 def askQuestion():
     data=request.get_json()
     question=data['question']
-    return jsonify(get_Answer(question))
+    return jsonify({"result": get_Answer(question)})
 
 
 # In[28]:
